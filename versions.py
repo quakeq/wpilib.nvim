@@ -20,6 +20,6 @@ def wpilib() -> str:
 
 lua = wpilib()
 
-with open('versions.lua', 'w', encoding='utf8') as f:
+with open('./lua/wpilib/versions.lua', 'w', encoding='utf8') as f:
     lua = ''.join([lua, '}'])
     f.write(lua)
