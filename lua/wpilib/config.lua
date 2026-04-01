@@ -37,17 +37,22 @@ local function init_config()
 end
 
 function M.load_config()
-	local f = io.open(require('wpilib.util').storage_path .. '/config.json', 'r'):read('a')
-	if vim.fn.strlen(f) > 0 then
-		local cfg = vim.json.decode(f)
-		if cfg then
-			return cfg
-		else
-			vim.print('Invalid configuration file')
-		end
-	else
-		return init_config()
-	end
+    local path = require('wpilib.util').storage_path .. '/config.json'
+    local f = io.open(path, 'r')
+    
+    if f then
+        local content = f:read('*a')
+        f:close()
+        if content and #content > 0 then
+            local status, cfg = pcall(vim.json.decode, content)
+            if status and cfg then
+                return cfg
+            end
+            vim.print('Invalid configuration file')
+        end
+    end
+    
+	return init_config()
 end
 
 return M
