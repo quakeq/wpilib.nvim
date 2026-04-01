@@ -3,9 +3,12 @@ local function create_command(name)
 
 	local function run(opts)
 		local args = opts.fargs
-		local sub = args[1]
+	    local sub = (args[1] or ""):lower()
+		if sub == "" then
+			require('wpilib.commands.menu').menu()
+		end
 
-		if not sub or not subcommands[sub] then
+		if not subcommands[sub] then
 			vim.notify("Unknown subcommand: " .. (sub or ""), vim.log.levels.ERROR)
 			return
 		end
@@ -46,6 +49,18 @@ function T.init_commands()
 	commands.add_subcommand(
 		"build",
 		require('wpilib.commands.build').build
+	)
+	commands.add_subcommand(
+		"deploy",
+		require('wpilib.commands.deploy').deploy
+	)
+	commands.add_subcommand(
+		"sim",
+		require('wpilib.commands.simulate').sim
+	)
+	commands.add_subcommand(
+		"project",
+		require('wpilib.commands.menu').menu
 	)
 end
 

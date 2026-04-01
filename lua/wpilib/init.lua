@@ -7,55 +7,38 @@
 
 local M = {}
 
-local util = require('wpilib.util')
-local config = require('wpilib.config')
-local versions = {}
+local function setup_paths()
+    local script_path = debug.getinfo(1).source:sub(2)
+    local deps_path = script_path:match("(.*[/\\])") .. "deps/lua-?/init.lua"
 
-local new_project = require('wpilib.new_project')
-
-local Menu = require('nui.menu')
-
-local function setup()
-	-- Fetch versions if we don't already have them
-	if not io.open(util.storage_path .. '/versions.lua') then
-		new_project.fetch_versions()
-	end
-
-	-- Require versions now
-	package.path = package.path .. ';'..require('wpilib.util').storage_path..'/versions.lua'
-	versions = require('wpilib.versions')
-
-	-- Load config
-	return config.load_config()
+    if not package.path:find(deps_path, 1, true) then
+        package.path = package.path .. ";" .. deps_path
+    end
 end
 
-function M.main()
-	local cfg = setup()
+setup_paths()
 
-	local menu = Menu(
-		util.menu_opts,
-		{
-			lines = {
-				Menu.item('New Project', { id = 'new' }),
-				Menu.item('Manage Vendordeps', { id = 'vdeps' }),
-			},
-			on_submit = function (item)
-				local tbl = {
-					['new'] = function ()
-						new_project.new_project(cfg.version)
-					end,
-					['vdeps'] = function ()
-						print('Not implemented')
-					end,
-				}
-				tbl[item.id]()
-			end
-		}
-	)
 
-	vim.schedule(function()
-		menu:mount()
-	end)
+function M.setup()
+	local util = require('wpilib.util')
+    local config = require('wpilib.config')
+    if vim.fn.isdirectory(util.storage_path) == 0 then
+        vim.fn.mkdir(util.storage_path, "p")
+    end
+
+    local storage_lua = util.storage_path .. '/?.lua'
+    if not package.path:find(storage_lua, 1, true) then
+        package.path = package.path .. ';' .. storage_lua
+    end
+
+    local cfg = config.load_config()
+    if not cfg then
+        require('wpilib.new_project').fetch_versions()
+        vim.schedule(function()
+            config.init_config_ui()
+        end)
+	end
+	require('wpilib.commands.commands').init_commands()
 end
 
 return M

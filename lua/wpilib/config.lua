@@ -6,53 +6,53 @@
 ]]
 
 local M = {}
+local util = require('wpilib.util')
 
-local Menu = require('nui.menu')
+local config_path = util.storage_path .. '/config.json'
 
-local function init_config()
-	local f = io.open(require('wpilib.util').storage_path .. '/config.json', 'w')
+-- Internal helper to save
+function M.save_config(data)
+    local f = io.open(config_path, 'w')
+    if f then
+        f:write(vim.json.encode(data))
+        f:close()
+    end
+end
 
-	if f then
-		local versions = {}
-		for i, v in ipairs(require('wpilib.versions')) do
-			versions[i] = Menu.item(v.tag, { unstable = not v.stable })
-		end
+-- This is the UI flow, now separated from the "getter"
+function M.init_config_ui(callback)
+    local versions = require('wpilib.versions')
+    local Menu = require('nui.menu')
 
-		local cfg = {}
-		local menu = Menu(require('wpilib.util').menu_opts, {
-			lines = versions,
-			enter = true,
-			on_submit = function (item)
-				f:write(vim.json.encode({ version = item.text }))
-				cfg = { version = item.text }
-			end
-		})
+    local items = {}
+    for _, v in ipairs(versions) do
+        table.insert(items, Menu.item(v.tag, { unstable = not v.stable }))
+    end
 
-		vim.schedule(function ()
-			menu:mount()
-		end)
+    local menu = Menu(util.menu_opts, {
+        lines = items,
+        enter = true,
+        on_submit = function(item)
+            local cfg = { version = item.text }
+            M.save_config(cfg)
+            if callback then callback(cfg) end
+            vim.notify("WPILib version set to " .. item.text)
+        end
+    })
 
-		return cfg
-	end
+    menu:mount()
 end
 
 function M.load_config()
-    local path = require('wpilib.util').storage_path .. '/config.json'
-    local f = io.open(path, 'r')
-    
+    local f = io.open(config_path, 'r')
     if f then
         local content = f:read('*a')
         f:close()
-        if content and #content > 0 then
-            local status, cfg = pcall(vim.json.decode, content)
-            if status and cfg then
-                return cfg
-            end
-            vim.print('Invalid configuration file')
-        end
+        local ok, cfg = pcall(vim.json.decode, content)
+        if ok and cfg then return cfg end
     end
-    
-	return init_config()
+    return nil
 end
 
 return M
+

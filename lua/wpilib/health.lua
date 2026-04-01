@@ -20,6 +20,12 @@ function M.check()
 		health.error("Robot: Not connected")
 	end
 
+	if require('wpilib.commands.commands').is_valid_project() then
+		health.ok("Project: WPILib project")
+	else
+		health.error("Project: Not a WPILib project")
+	end
+
 	if vim.fn.executable("curl") == 1 then
 		health.ok("curl is installed")
 	else
