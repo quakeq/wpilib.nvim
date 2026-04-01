@@ -20,8 +20,8 @@ setup_paths()
 
 
 function M.setup()
-	local util = require('wpilib.util')
-    local config = require('wpilib.config')
+    local util = require('wpilib.util')
+
     if vim.fn.isdirectory(util.storage_path) == 0 then
         vim.fn.mkdir(util.storage_path, "p")
     end
@@ -31,14 +31,7 @@ function M.setup()
         package.path = package.path .. ';' .. storage_lua
     end
 
-    local cfg = config.load_config()
-    if not cfg then
-        require('wpilib.new_project').fetch_versions()
-        vim.schedule(function()
-            config.init_config_ui()
-        end)
-	end
-	require('wpilib.commands.commands').init_commands()
+    require('wpilib.commands.commands').init_commands()
 end
 
 return M

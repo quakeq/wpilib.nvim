@@ -10,7 +10,6 @@ local util = require('wpilib.util')
 
 local config_path = util.storage_path .. '/config.json'
 
--- Internal helper to save
 function M.save_config(data)
     local f = io.open(config_path, 'w')
     if f then
@@ -19,7 +18,6 @@ function M.save_config(data)
     end
 end
 
--- This is the UI flow, now separated from the "getter"
 function M.init_config_ui(callback)
     local versions = require('wpilib.versions')
     local Menu = require('nui.menu')
