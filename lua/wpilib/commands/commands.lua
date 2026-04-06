@@ -52,6 +52,8 @@ end
 function T.is_valid_project()
 	local path = vim.uv.cwd() .. "/.wpilib/"
 	local file = path .. "wpilib_preferences.json"
+	print("cwd: " .. vim.uv.cwd())
+	print("stat: " .. tostring(vim.uv.fs_stat(file)))
 
 	if vim.fn.isdirectory(path) == 0 then
 		vim.notify("Not a WPILib project", vim.log.levels.ERROR)
