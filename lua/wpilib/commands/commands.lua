@@ -3,9 +3,9 @@ local function create_command(name)
 
 	local function run(opts)
 		local args = opts.fargs
-	    local sub = (args[1] or ""):lower()
+		local sub = (args[1] or ""):lower()
 		if sub == "" then
-			require('wpilib.commands.menu').menu()
+			require("wpilib.commands.menu").menu()
 		end
 
 		if not subcommands[sub] then
@@ -32,9 +32,9 @@ local function create_command(name)
 		add_subcommand = function(cmd, fn, opts)
 			subcommands[cmd] = {
 				fn = fn,
-				opts = opts or {}
+				opts = opts or {},
 			}
-		end
+		end,
 	}
 end
 
@@ -42,26 +42,11 @@ local T = {}
 
 function T.init_commands()
 	local commands = create_command("FRC")
-	commands.add_subcommand(
-		"teamNumber",
-		require('wpilib.commands.team').setTeam
-	)
-	commands.add_subcommand(
-		"build",
-		require('wpilib.commands.build').build
-	)
-	commands.add_subcommand(
-		"deploy",
-		require('wpilib.commands.deploy').deploy
-	)
-	commands.add_subcommand(
-		"sim",
-		require('wpilib.commands.simulate').sim
-	)
-	commands.add_subcommand(
-		"project",
-		require('wpilib.commands.menu').menu
-	)
+	commands.add_subcommand("teamNumber", require("wpilib.commands.team").setTeam)
+	commands.add_subcommand("build", require("wpilib.commands.build").build)
+	commands.add_subcommand("deploy", require("wpilib.commands.deploy").deploy)
+	commands.add_subcommand("sim", require("wpilib.commands.simulate").sim)
+	commands.add_subcommand("project", require("wpilib.commands.menu").menu)
 end
 
 function T.is_valid_project()
@@ -73,39 +58,37 @@ function T.is_valid_project()
 		return false
 	end
 
-	if vim.uv.fs_stat(path .. file) then
+	if vim.uv.fs_stat(file) then
 		return true
 	end
 end
 
-
 function T.run_gradlew(cmd, cb, exit_cb, sync)
 	sync = sync or false
 	if T.is_valid_project() then
-        if type(cb) ~= "function" or type(exit_cb) ~= "function" then
-            return
-        end
+		if type(cb) ~= "function" or type(exit_cb) ~= "function" then
+			return
+		end
 
-        local res = vim.system({ './gradlew', cmd }, {
-            stdout = function(err, data)
-                if data then
-                    vim.schedule(function()
-                        cb(err, data)
-                    end)
-                end
-            end,
-            text = true,
-        }, function(obj)
-            vim.schedule(function()
-                exit_cb(obj)
-            end)
-        end)
+		local res = vim.system({ "./gradlew", cmd }, {
+			stdout = function(err, data)
+				if data then
+					vim.schedule(function()
+						cb(err, data)
+					end)
+				end
+			end,
+			text = true,
+		}, function(obj)
+			vim.schedule(function()
+				exit_cb(obj)
+			end)
+		end)
 
 		if sync then
 			res:wait()
 		end
-    end
+	end
 end
-
 
 return T
